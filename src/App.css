@@ -53,11 +53,44 @@ h1 {
 }
 
 .focus-graph {
+  position: relative;
   height: 390px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
+}
+
+.focus-graph:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+}
+
+.graph-fullscreen-button {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  right: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.graph-fullscreen-button:hover,
+.graph-fullscreen-button:focus-visible {
+  border-color: var(--accent);
+}
+
+.graph-fullscreen-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .focus-graph .react-flow__node {

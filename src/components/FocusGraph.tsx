@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Background,
   Handle,
@@ -285,12 +285,45 @@ export function FocusGraph({
   onFocus,
   highlightedId = null,
 }: FocusGraphProps) {
+  const graphRef = useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    function handleFullscreenChange(): void {
+      setIsFullscreen(document.fullscreenElement === graphRef.current)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
+  async function toggleFullscreen(): Promise<void> {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      } else {
+        await graphRef.current?.requestFullscreen()
+      }
+    } catch {
+      setIsFullscreen(false)
+    }
+  }
+
   if (!focusedId || !plans[focusedId]) {
     return <p className="graph-empty">Select a plan to see its connections.</p>
   }
 
   return (
-    <div className="focus-graph" aria-label="Focused plan graph">
+    <div ref={graphRef} className="focus-graph" aria-label="Focused plan graph">
+      <button
+        type="button"
+        className="graph-fullscreen-button"
+        onClick={() => void toggleFullscreen()}
+        aria-label={isFullscreen ? 'Exit full screen' : 'Make graph full screen'}
+        aria-pressed={isFullscreen}
+      >
+        {isFullscreen ? 'Exit full screen' : 'Full screen'}
+      </button>
       <ReactFlowProvider>
         <FocusGraphCanvas
           plans={plans}
