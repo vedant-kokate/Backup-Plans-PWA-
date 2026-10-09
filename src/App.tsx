@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { DeletePlanDialog } from './components/DeletePlanDialog'
+import { EditPlanDialog } from './components/EditPlanDialog'
 import { FocusGraph } from './components/FocusGraph'
 import { NewPlanDialog } from './components/NewPlanDialog'
 import { SearchPalette } from './components/SearchPalette'
@@ -12,16 +14,21 @@ type NavigationSide = 'parents' | 'children'
 function App() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [candidateId, setCandidateId] = useState<string | null>(null)
   const [candidateSide, setCandidateSide] = useState<NavigationSide | null>(null)
   const plans = usePlanStore((state) => state.plans)
   const focusedId = usePlanStore((state) => state.focusedId)
   const setFocus = usePlanStore((state) => state.setFocus)
+  const deletePlan = usePlanStore((state) => state.deletePlan)
   const planList = Object.values(plans).sort(
     (first, second) => Number(first.id) - Number(second.id),
   )
   const parentPlans = focusedId ? getParents(plans, focusedId) : []
   const childPlans = focusedId ? getChildren(plans, focusedId) : []
+  const focusedPlan = focusedId ? plans[focusedId] : undefined
+  const isOverlayOpen = isDialogOpen || isSearchOpen || isEditOpen || isDeleteOpen
 
   function focusPlan(id: string): void {
     setFocus(id)
@@ -31,12 +38,37 @@ function App() {
 
   function openNewPlan(): void {
     setIsSearchOpen(false)
+    setIsEditOpen(false)
+    setIsDeleteOpen(false)
     setIsDialogOpen(true)
   }
 
   function openSearch(): void {
     setIsDialogOpen(false)
+    setIsEditOpen(false)
+    setIsDeleteOpen(false)
     setIsSearchOpen(true)
+  }
+
+  function openEditPlan(): void {
+    if (focusedPlan) {
+      setIsEditOpen(true)
+    }
+  }
+
+  function openDeletePlan(): void {
+    if (focusedPlan) {
+      setIsDeleteOpen(true)
+    }
+  }
+
+  function confirmDeletePlan(): void {
+    if (focusedId) {
+      deletePlan(focusedId)
+    }
+    setIsDeleteOpen(false)
+    setCandidateId(null)
+    setCandidateSide(null)
   }
 
   function getCandidates(side: NavigationSide) {
@@ -114,34 +146,51 @@ function App() {
     n: openNewPlan,
     '/': openSearch,
     'mod+k': openSearch,
+    e: () => {
+      if (!isOverlayOpen) {
+        openEditPlan()
+      }
+    },
+    d: () => {
+      if (!isOverlayOpen) {
+        openDeletePlan()
+      }
+    },
+    Delete: () => {
+      if (!isOverlayOpen) {
+        openDeletePlan()
+      }
+    },
     ArrowLeft: () => {
-      if (!isDialogOpen && !isSearchOpen) {
+      if (!isOverlayOpen) {
         chooseSide('parents')
       }
     },
     ArrowRight: () => {
-      if (!isDialogOpen && !isSearchOpen) {
+      if (!isOverlayOpen) {
         chooseSide('children')
       }
     },
     ArrowUp: () => {
-      if (!isDialogOpen && !isSearchOpen) {
+      if (!isOverlayOpen) {
         moveCandidate(-1)
       }
     },
     ArrowDown: () => {
-      if (!isDialogOpen && !isSearchOpen) {
+      if (!isOverlayOpen) {
         moveCandidate(1)
       }
     },
     Enter: () => {
-      if (!isDialogOpen && !isSearchOpen) {
+      if (!isOverlayOpen) {
         confirmCandidate()
       }
     },
     Escape: () => {
       setIsDialogOpen(false)
       setIsSearchOpen(false)
+      setIsEditOpen(false)
+      setIsDeleteOpen(false)
     },
   })
 
@@ -195,7 +244,10 @@ function App() {
                   onClick={() => focusPlan(plan.id)}
                 >
                   <span className="plan-id">#{plan.id}</span>
-                  <span>{plan.title}</span>
+                  <span className="plan-content">
+                    <span>{plan.title}</span>
+                    {plan.notes && <span className="plan-notes">{plan.notes}</span>}
+                  </span>
                 </button>
               </li>
             ))}
@@ -204,6 +256,16 @@ function App() {
       </section>
 
       {isDialogOpen && <NewPlanDialog onClose={() => setIsDialogOpen(false)} />}
+      {isEditOpen && focusedPlan && (
+        <EditPlanDialog plan={focusedPlan} onClose={() => setIsEditOpen(false)} />
+      )}
+      {isDeleteOpen && focusedPlan && (
+        <DeletePlanDialog
+          planTitle={focusedPlan.title}
+          onCancel={() => setIsDeleteOpen(false)}
+          onConfirm={confirmDeletePlan}
+        />
+      )}
       {isSearchOpen && (
         <SearchPalette
           plans={planList}

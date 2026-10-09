@@ -182,6 +182,20 @@ h1 {
   font-weight: 700;
 }
 
+.plan-content {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.plan-notes {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .empty-state {
   padding: 28px 0;
   border-top: 1px solid var(--border);
@@ -210,7 +224,9 @@ h1 {
 
 .primary-button:focus-visible,
 .secondary-button:focus-visible,
-.dialog input:focus-visible {
+.danger-button:focus-visible,
+.dialog input:focus-visible,
+.dialog textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -350,6 +366,24 @@ h1 {
   font: inherit;
 }
 
+.dialog textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 5rem;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--bg);
+  font: inherit;
+}
+
+.dialog input + label,
+.dialog textarea + label {
+  margin-top: 18px;
+}
+
 .parent-picker {
   margin-top: 20px;
 }
@@ -471,6 +505,27 @@ h1 {
 
 .secondary-button:hover {
   border-color: var(--text);
+}
+
+.danger-button {
+  padding: 10px 14px;
+  border: 1px solid #b5482d;
+  border-radius: 6px;
+  color: #fffdf8;
+  background: #b5482d;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.danger-button:hover,
+.danger-button:focus-visible {
+  filter: brightness(1.08);
+}
+
+.confirm-copy {
+  color: var(--text);
+  font-size: 0.95rem;
 }
 
 @media (max-width: 600px) {

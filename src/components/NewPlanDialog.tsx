@@ -12,6 +12,7 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
   const plans = usePlanStore((state) => state.plans)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState('')
+  const [notes, setNotes] = useState('')
   const [parents, setParents] = useState<string[]>([])
   const [error, setError] = useState('')
   const [isParentSearchOpen, setIsParentSearchOpen] = useState(false)
@@ -36,7 +37,7 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
       return
     }
 
-    addPlan(trimmedTitle, parents)
+    addPlan(trimmedTitle, parents, notes.trim())
     onClose()
   }
 
@@ -91,6 +92,15 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
             aria-describedby={error ? 'plan-title-error' : undefined}
             aria-invalid={Boolean(error)}
             autoComplete="off"
+          />
+
+          <label htmlFor="plan-notes">Notes</label>
+          <textarea
+            id="plan-notes"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={3}
+            placeholder="Add context or next steps"
           />
 
           <div className="parent-picker">
