@@ -23,7 +23,11 @@ export function useHotkeys(
         return
       }
 
-      const handler = handlers[event.key] ?? handlers[event.key.toLowerCase()]
+      const key =
+        (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k'
+          ? 'mod+k'
+          : event.key
+      const handler = handlers[key] ?? handlers[key.toLowerCase()]
 
       if (!handler) {
         return

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { SearchPalette } from './SearchPalette'
 import { usePlanStore } from '../store'
+import type { Plan } from '../types'
 
 interface NewPlanDialogProps {
   onClose: () => void
@@ -7,9 +9,18 @@ interface NewPlanDialogProps {
 
 export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
   const addPlan = usePlanStore((state) => state.addPlan)
+  const plans = usePlanStore((state) => state.plans)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState('')
+  const [parents, setParents] = useState<string[]>([])
   const [error, setError] = useState('')
+  const [isParentSearchOpen, setIsParentSearchOpen] = useState(false)
+  const selectedParents = parents
+    .map((parentId) => plans[parentId])
+    .filter((plan): plan is Plan => plan !== undefined)
+  const availablePlans = Object.values(plans).sort(
+    (first, second) => Number(first.id) - Number(second.id),
+  )
 
   useEffect(() => {
     titleInputRef.current?.focus()
@@ -25,8 +36,31 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
       return
     }
 
-    addPlan(trimmedTitle, [])
+    addPlan(trimmedTitle, parents)
     onClose()
+  }
+
+  function handleTitleKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
+    const isParentShortcut =
+      event.key === 'Tab' ||
+      ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'p')
+
+    if (isParentShortcut) {
+      event.preventDefault()
+      setIsParentSearchOpen(true)
+    }
+  }
+
+  function handleParentSelect(plan: Plan): void {
+    setParents((currentParents) => [...currentParents, plan.id])
+    setIsParentSearchOpen(false)
+    titleInputRef.current?.focus()
+  }
+
+  function removeParent(parentId: string): void {
+    setParents((currentParents) =>
+      currentParents.filter((currentParentId) => currentParentId !== parentId),
+    )
   }
 
   return (
@@ -53,10 +87,43 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
               setTitle(event.target.value)
               setError('')
             }}
+            onKeyDown={handleTitleKeyDown}
             aria-describedby={error ? 'plan-title-error' : undefined}
             aria-invalid={Boolean(error)}
             autoComplete="off"
           />
+
+          <div className="parent-picker">
+            <div className="parent-picker-heading">
+              <span className="field-label">Parents</span>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => setIsParentSearchOpen(true)}
+              >
+                Add parent
+              </button>
+            </div>
+            {selectedParents.length === 0 ? (
+              <p className="parent-empty">No parents selected. This will be a root plan.</p>
+            ) : (
+              <ul className="parent-chips" aria-label="Selected parents">
+                {selectedParents.map((parent) => (
+                  <li key={parent.id} className="parent-chip">
+                    <span>#{parent.id} {parent.title}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeParent(parent.id)}
+                      aria-label={`Remove parent #${parent.id}`}
+                    >
+                      x
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           {error && (
             <p id="plan-title-error" className="field-error" role="alert">
               {error}
@@ -71,6 +138,18 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
             </button>
           </div>
         </form>
+
+        {isParentSearchOpen && (
+          <SearchPalette
+            plans={availablePlans}
+            exclude={parents}
+            onClose={() => {
+              setIsParentSearchOpen(false)
+              titleInputRef.current?.focus()
+            }}
+            onSelect={handleParentSelect}
+          />
+        )}
       </div>
     </div>
   )

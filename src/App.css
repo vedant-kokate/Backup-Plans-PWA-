@@ -17,6 +17,12 @@
   gap: 24px;
 }
 
+.header-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
 .eyebrow {
   margin-bottom: 12px;
   color: var(--accent);
@@ -157,6 +163,92 @@ h1 {
   background: rgba(8, 6, 13, 0.45);
 }
 
+.palette-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: start center;
+  padding: 12vh 20px 20px;
+  background: rgba(8, 6, 13, 0.45);
+}
+
+.palette {
+  width: min(560px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.palette-heading {
+  padding: 24px 24px 16px;
+}
+
+.palette h2 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 1.5rem;
+  line-height: 1.1;
+}
+
+.palette > input {
+  width: calc(100% - 48px);
+  box-sizing: border-box;
+  margin: 0 24px 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--bg);
+  font: inherit;
+}
+
+.palette > input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.palette-results {
+  max-height: min(360px, 50vh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 12px 12px;
+  list-style: none;
+}
+
+.palette-result {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-h);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.palette-result:hover,
+.palette-result.highlighted {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.palette-result:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.palette-empty {
+  padding: 20px 12px;
+  color: var(--text);
+}
+
 .dialog {
   width: min(420px, 100%);
   padding: 28px;
@@ -196,6 +288,105 @@ h1 {
   font: inherit;
 }
 
+.parent-picker {
+  margin-top: 20px;
+}
+
+.parent-picker-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.field-label {
+  color: var(--text-h);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.text-button {
+  padding: 0;
+  border: 0;
+  color: var(--accent);
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.text-button:hover,
+.text-button:focus-visible {
+  text-decoration: underline;
+}
+
+.text-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.parent-empty {
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.parent-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.parent-chip {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 10px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--accent-bg);
+  font-size: 0.85rem;
+}
+
+.parent-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.parent-chip button {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: var(--accent);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.parent-chip button:hover,
+.parent-chip button:focus-visible {
+  color: var(--text-h);
+  background: var(--surface);
+}
+
+.parent-chip button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .field-error {
   margin-top: 8px;
   color: var(--accent);
@@ -231,6 +422,10 @@ h1 {
 
   .header-row {
     align-items: flex-start;
+  }
+
+  .header-actions {
+    flex-direction: column;
   }
 
   .header-button {
