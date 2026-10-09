@@ -48,6 +48,62 @@ h1 {
   font-size: 1.05rem;
 }
 
+.graph-section {
+  margin-bottom: 48px;
+}
+
+.focus-graph {
+  height: 390px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.focus-graph .react-flow__node {
+  width: 180px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--bg);
+  box-shadow: none;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.focus-graph .react-flow__node.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 2px var(--accent-border);
+}
+
+.focus-graph .react-flow__edge-path {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.focus-graph .react-flow__arrowhead {
+  fill: var(--accent);
+}
+
+.focus-graph .react-flow__background pattern circle {
+  fill: var(--border);
+}
+
+.graph-empty {
+  display: grid;
+  height: 390px;
+  margin: 0;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+}
+
 .section-heading {
   display: flex;
   align-items: center;

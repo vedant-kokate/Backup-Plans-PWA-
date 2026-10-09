@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FocusGraph } from './components/FocusGraph'
 import { NewPlanDialog } from './components/NewPlanDialog'
 import { SearchPalette } from './components/SearchPalette'
 import { useHotkeys } from './hooks/useHotkeys'
@@ -54,6 +55,13 @@ function App() {
         </div>
         <p className="subtitle">A local-first list of the paths you are considering.</p>
       </header>
+
+      <section className="graph-section" aria-labelledby="graph-heading">
+        <div className="section-heading">
+          <h2 id="graph-heading">Focused path</h2>
+        </div>
+        <FocusGraph plans={plans} focusedId={focusedId} onFocus={setFocus} />
+      </section>
 
       <section className="plan-section" aria-labelledby="plan-list-heading">
         <div className="section-heading">
