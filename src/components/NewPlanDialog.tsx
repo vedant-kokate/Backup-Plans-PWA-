@@ -5,15 +5,16 @@ import type { Plan } from '../types'
 
 interface NewPlanDialogProps {
   onClose: () => void
+  initialParents?: string[]
 }
 
-export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
+export function NewPlanDialog({ onClose, initialParents = [] }: NewPlanDialogProps) {
   const addPlan = usePlanStore((state) => state.addPlan)
   const plans = usePlanStore((state) => state.plans)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState('')
   const [notes, setNotes] = useState('')
-  const [parents, setParents] = useState<string[]>([])
+  const [parents, setParents] = useState<string[]>(initialParents)
   const [error, setError] = useState('')
   const [isParentSearchOpen, setIsParentSearchOpen] = useState(false)
   const selectedParents = parents

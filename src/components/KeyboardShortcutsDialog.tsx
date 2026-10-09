@@ -4,14 +4,16 @@ interface KeyboardShortcutsDialogProps {
 
 const shortcuts = [
   ['n', 'New plan'],
+  ['c', 'Create a child of the focused plan'],
   ['/', 'Open search'],
   ['e', 'Edit focused plan'],
   ['d / Delete', 'Delete focused plan'],
   ['Left / Right', 'Move to a parent or child'],
   ['Up / Down', 'Choose a navigation candidate'],
-  ['Enter', 'Confirm a highlighted candidate'],
+  ['Enter', 'Open the selected plan or confirm a candidate'],
   ['Esc', 'Close the current dialog'],
   ['+ / - / 0', 'Zoom in, zoom out, or fit graph'],
+  ['f', 'Toggle graph fullscreen'],
   ['Tab', 'Move from title to notes in a new plan'],
   ['Cmd/Ctrl + P', 'Choose a parent in a new plan'],
   ['?', 'Open this list'],

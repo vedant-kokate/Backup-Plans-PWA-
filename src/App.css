@@ -139,6 +139,40 @@ h1 {
   text-align: left;
 }
 
+.node-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.node-child-button {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  color: var(--accent);
+  background: var(--surface);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.node-child-button:hover,
+.node-child-button:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.node-child-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .focus-graph .react-flow__node.selected {
   border-color: var(--accent);
   background: var(--accent-bg);
@@ -530,6 +564,45 @@ h1 {
 
 .parent-picker {
   margin-top: 20px;
+}
+
+.children-picker {
+  margin-top: 20px;
+}
+
+.children-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.children-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  font-size: 0.85rem;
+}
+
+.children-list li span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.children-list small {
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .parent-picker-heading {

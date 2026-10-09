@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { SearchPalette } from './SearchPalette'
-import { wouldCreateCycle } from '../graph'
+import { getChildren } from '../graph'
 import { usePlanStore } from '../store'
 import type { Plan } from '../types'
 
@@ -8,9 +8,17 @@ interface EditPlanDialogProps {
   plan: Plan
   onClose: () => void
   onDelete: () => void
+  onEditChild: (id: string) => void
+  onCreateChild: (id: string) => void
 }
 
-export function EditPlanDialog({ plan, onClose, onDelete }: EditPlanDialogProps) {
+export function EditPlanDialog({
+  plan,
+  onClose,
+  onDelete,
+  onEditChild,
+  onCreateChild,
+}: EditPlanDialogProps) {
   const updatePlan = usePlanStore((state) => state.updatePlan)
   const plans = usePlanStore((state) => state.plans)
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -19,11 +27,12 @@ export function EditPlanDialog({ plan, onClose, onDelete }: EditPlanDialogProps)
   const [parents, setParents] = useState<string[]>(plan.parents)
   const [error, setError] = useState('')
   const [isParentSearchOpen, setIsParentSearchOpen] = useState(false)
+  const children = getChildren(plans, plan.id)
   const selectedParents = parents
     .map((parentId) => plans[parentId])
     .filter((parent): parent is Plan => parent !== undefined)
   const availablePlans = Object.values(plans)
-    .filter((candidate) => !wouldCreateCycle(plans, plan.id, candidate.id))
+    .filter((candidate) => candidate.id !== plan.id)
     .sort((first, second) => Number(first.id) - Number(second.id))
 
   useEffect(() => {
@@ -129,6 +138,40 @@ export function EditPlanDialog({ plan, onClose, onDelete }: EditPlanDialogProps)
                       aria-label={`Remove parent #${parent.id}`}
                     >
                       x
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="children-picker">
+            <div className="parent-picker-heading">
+              <span className="field-label">Children</span>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => onCreateChild(plan.id)}
+              >
+                Create child
+              </button>
+            </div>
+            {children.length === 0 ? (
+              <p className="parent-empty">No children yet.</p>
+            ) : (
+              <ul className="children-list" aria-label="Child plans">
+                {children.map((child) => (
+                  <li key={child.id}>
+                    <span>
+                      #{child.id} {child.title}
+                      {child.notes && <small>{child.notes}</small>}
+                    </span>
+                    <button
+                      type="button"
+                      className="text-button"
+                      onClick={() => onEditChild(child.id)}
+                    >
+                      Edit
                     </button>
                   </li>
                 ))}

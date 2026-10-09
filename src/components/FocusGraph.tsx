@@ -25,6 +25,7 @@ interface FocusGraphProps {
   onOpenShortcuts: () => void
   onCloseShortcuts: () => void
   onNavigationMode: () => void
+  onCreateChild: (id: string) => void
 }
 
 interface FocusGraphCanvasProps {
@@ -32,6 +33,7 @@ interface FocusGraphCanvasProps {
   focusedId: string
   onFocus: (id: string) => void
   onNavigationMode: () => void
+  onCreateChild: (id: string) => void
   highlightedId: string | null
 }
 
@@ -50,11 +52,31 @@ const columnGap = 300
 const rowGap = 110
 const maxGraphDistance = 6
 
-function PlanNode({ data }: { data: { label: string } }) {
+interface PlanNodeData {
+  label: string
+  planId: string
+  onCreateChild: (id: string) => void
+}
+
+function PlanNode({ data }: { data: PlanNodeData }) {
   return (
     <>
       <Handle type="target" position={Position.Left} />
-      <div>{data.label}</div>
+      <div className="node-content">
+        <span>{data.label}</span>
+        <button
+          type="button"
+          className="node-child-button"
+          onClick={(event) => {
+            event.stopPropagation()
+            data.onCreateChild(data.planId)
+          }}
+          aria-label={`Create child of #${data.planId}`}
+          title="Create child"
+        >
+          +
+        </button>
+      </div>
       <Handle type="source" position={Position.Right} />
     </>
   )
@@ -121,6 +143,43 @@ function getNeighborhood(
   return neighborhood
 }
 
+function getDirectionalDistances(
+  plans: Plans,
+  focusedId: string,
+  direction: 'parents' | 'children',
+  maxDistance: number,
+): Map<string, number> {
+  const distances = new Map<string, number>()
+  const visited = new Set([focusedId])
+  const pending = [{ id: focusedId, distance: 0 }]
+
+  while (pending.length > 0) {
+    const current = pending.shift()
+
+    if (!current || current.distance >= maxDistance) {
+      continue
+    }
+
+    const neighbors =
+      direction === 'parents'
+        ? getParents(plans, current.id)
+        : getChildren(plans, current.id)
+
+    for (const neighbor of neighbors) {
+      if (visited.has(neighbor.id)) {
+        continue
+      }
+
+      const distance = current.distance + 1
+      visited.add(neighbor.id)
+      distances.set(neighbor.id, distance)
+      pending.push({ id: neighbor.id, distance })
+    }
+  }
+
+  return distances
+}
+
 function getVisiblePlans(
   plans: Plans,
   focusedId: string,
@@ -128,12 +187,41 @@ function getVisiblePlans(
 ): Map<string, VisiblePlan> {
   const visiblePlans = new Map<string, VisiblePlan>()
   const neighborhood = getNeighborhood(plans, focusedId, maxDistance)
+  const parentDistances = getDirectionalDistances(
+    plans,
+    focusedId,
+    'parents',
+    maxDistance,
+  )
+  const childDistances = getDirectionalDistances(
+    plans,
+    focusedId,
+    'children',
+    maxDistance,
+  )
 
   for (const [id, { distance, column }] of neighborhood) {
     const plan = plans[id]
 
     if (plan) {
-      visiblePlans.set(id, { plan, distance, column })
+      const parentDistance = parentDistances.get(id)
+      const childDistance = childDistances.get(id)
+      const directionalColumn =
+        parentDistance !== undefined && childDistance !== undefined
+          ? parentDistance <= childDistance
+            ? -parentDistance
+            : childDistance
+          : parentDistance !== undefined
+            ? -parentDistance
+            : childDistance !== undefined
+              ? childDistance
+              : column
+
+      visiblePlans.set(id, {
+        plan,
+        distance,
+        column: directionalColumn,
+      })
     }
   }
 
@@ -166,6 +254,7 @@ function makeNode(
   y: number,
   focusedId: string,
   highlightedId: string | null,
+  onCreateChild: (id: string) => void,
 ): Node {
   const classes = [
     'focus-node',
@@ -179,7 +268,11 @@ function makeNode(
     id: visiblePlan.plan.id,
     type: 'plan',
     position: { x, y },
-    data: { label: `#${visiblePlan.plan.id} ${visiblePlan.plan.title}` },
+    data: {
+      label: `#${visiblePlan.plan.id} ${visiblePlan.plan.title}`,
+      planId: visiblePlan.plan.id,
+      onCreateChild,
+    },
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
     className: classes,
@@ -191,6 +284,7 @@ function FocusGraphCanvas({
   focusedId,
   onFocus,
   onNavigationMode,
+  onCreateChild,
   highlightedId,
 }: FocusGraphCanvasProps) {
   const { fitView, getZoom, zoomIn, zoomOut } = useReactFlow()
@@ -221,6 +315,7 @@ function FocusGraphCanvas({
       position.y,
       focusedId,
       highlightedId,
+      onCreateChild,
     )
   })
   const edges: Edge[] = []
@@ -298,6 +393,7 @@ export function FocusGraph({
   onOpenShortcuts,
   onCloseShortcuts,
   onNavigationMode,
+  onCreateChild,
 }: FocusGraphProps) {
   const graphRef = useRef<HTMLDivElement>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -371,6 +467,7 @@ export function FocusGraph({
           focusedId={focusedId}
           onFocus={onFocus}
           onNavigationMode={onNavigationMode}
+          onCreateChild={onCreateChild}
           highlightedId={highlightedId}
         />
       </ReactFlowProvider>

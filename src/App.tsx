@@ -18,6 +18,7 @@ function App() {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
+  const [newPlanParents, setNewPlanParents] = useState<string[]>([])
   const [navigationMode, setNavigationMode] = useState<'graph' | 'list'>('graph')
   const [listIndex, setListIndex] = useState(0)
   const [candidateId, setCandidateId] = useState<string | null>(null)
@@ -41,12 +42,18 @@ function App() {
     setCandidateSide(null)
   }
 
-  function openNewPlan(): void {
+  function openNewPlan(parentIds: string[] = []): void {
     setIsSearchOpen(false)
     setIsEditOpen(false)
     setIsDeleteOpen(false)
     setIsShortcutsOpen(false)
+    setNewPlanParents(parentIds)
     setIsDialogOpen(true)
+  }
+
+  function closeNewPlan(): void {
+    setIsDialogOpen(false)
+    setNewPlanParents([])
   }
 
   function openSearch(): void {
@@ -88,6 +95,10 @@ function App() {
   function openEditForPlan(id: string): void {
     focusPlan(id)
     setIsEditOpen(true)
+  }
+
+  function createChildFromPlan(id: string): void {
+    openNewPlan([id])
   }
 
   function moveListSelection(step: number): void {
@@ -193,7 +204,12 @@ function App() {
   }
 
   useHotkeys({
-    n: openNewPlan,
+    n: () => openNewPlan(),
+    c: () => {
+      if (!isOverlayOpen && focusedId) {
+        createChildFromPlan(focusedId)
+      }
+    },
     '/': openSearch,
     '?': () => {
       if (!isOverlayOpen) {
@@ -286,7 +302,7 @@ function App() {
             <button type="button" className="secondary-button header-button" onClick={openSearch}>
               Search
             </button>
-            <button type="button" className="primary-button header-button" onClick={openNewPlan}>
+            <button type="button" className="primary-button header-button" onClick={() => openNewPlan()}>
               New plan
             </button>
           </div>
@@ -307,6 +323,7 @@ function App() {
           onOpenShortcuts={openShortcuts}
           onCloseShortcuts={() => setIsShortcutsOpen(false)}
           onNavigationMode={() => setNavigationMode('graph')}
+          onCreateChild={createChildFromPlan}
         />
       </section>
 
@@ -354,12 +371,19 @@ function App() {
         )}
       </section>
 
-      {isDialogOpen && <NewPlanDialog onClose={() => setIsDialogOpen(false)} />}
+      {isDialogOpen && (
+        <NewPlanDialog
+          initialParents={newPlanParents}
+          onClose={closeNewPlan}
+        />
+      )}
       {isEditOpen && focusedPlan && (
         <EditPlanDialog
           plan={focusedPlan}
           onClose={() => setIsEditOpen(false)}
           onDelete={requestDeleteFromEdit}
+          onEditChild={openEditForPlan}
+          onCreateChild={createChildFromPlan}
         />
       )}
       {isDeleteOpen && focusedPlan && (
