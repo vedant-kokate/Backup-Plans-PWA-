@@ -18,6 +18,7 @@ interface FocusGraphProps {
   plans: Plans
   focusedId: string | null
   onFocus: (id: string) => void
+  highlightedId?: string | null
 }
 
 interface FocusGraphCanvasProps {
@@ -27,6 +28,7 @@ interface FocusGraphCanvasProps {
   focusedPlan: Plan
   parents: Plan[]
   children: Plan[]
+  highlightedId: string | null
 }
 
 const columnGap = 300
@@ -44,7 +46,21 @@ function PlanNode({ data }: { data: { label: string } }) {
 
 const nodeTypes = { plan: PlanNode }
 
-function makeNode(plan: Plan, x: number, y: number, focusedId: string): Node {
+function makeNode(
+  plan: Plan,
+  x: number,
+  y: number,
+  focusedId: string,
+  highlightedId: string | null,
+): Node {
+  const classes = [
+    'focus-node',
+    plan.id === focusedId ? 'selected' : '',
+    plan.id === highlightedId ? 'candidate' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return {
     id: plan.id,
     type: 'plan',
@@ -52,7 +68,7 @@ function makeNode(plan: Plan, x: number, y: number, focusedId: string): Node {
     data: { label: `#${plan.id} ${plan.title}` },
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    className: plan.id === focusedId ? 'focus-node selected' : 'focus-node',
+    className: classes,
   }
 }
 
@@ -63,15 +79,16 @@ function FocusGraphCanvas({
   focusedPlan,
   parents,
   children,
+  highlightedId,
 }: FocusGraphCanvasProps) {
   const { fitView } = useReactFlow()
   const nodes: Node[] = [
     ...parents.map((plan, index) =>
-      makeNode(plan, 0, index * rowGap, focusedId),
+      makeNode(plan, 0, index * rowGap, focusedId, highlightedId),
     ),
-    makeNode(focusedPlan, columnGap, 0, focusedId),
+    makeNode(focusedPlan, columnGap, 0, focusedId, highlightedId),
     ...children.map((plan, index) =>
-      makeNode(plan, columnGap * 2, index * rowGap, focusedId),
+      makeNode(plan, columnGap * 2, index * rowGap, focusedId, highlightedId),
     ),
   ]
   const edges: Edge[] = [
@@ -111,7 +128,12 @@ function FocusGraphCanvas({
   )
 }
 
-export function FocusGraph({ plans, focusedId, onFocus }: FocusGraphProps) {
+export function FocusGraph({
+  plans,
+  focusedId,
+  onFocus,
+  highlightedId = null,
+}: FocusGraphProps) {
   if (!focusedId || !plans[focusedId]) {
     return <p className="graph-empty">Select a plan to see its connections.</p>
   }
@@ -130,6 +152,7 @@ export function FocusGraph({ plans, focusedId, onFocus }: FocusGraphProps) {
           focusedPlan={focusedPlan}
           parents={parents}
           children={children}
+          highlightedId={highlightedId}
         />
       </ReactFlowProvider>
     </div>
