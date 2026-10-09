@@ -43,12 +43,18 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
 
   function handleTitleKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
     const isParentShortcut =
-      event.key === 'Tab' ||
-      ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'p')
+      (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'p'
 
     if (isParentShortcut) {
       event.preventDefault()
       setIsParentSearchOpen(true)
+    }
+  }
+
+  function handleNotesKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>): void {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault()
+      event.currentTarget.form?.requestSubmit()
     }
   }
 
@@ -99,6 +105,7 @@ export function NewPlanDialog({ onClose }: NewPlanDialogProps) {
             id="plan-notes"
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
+            onKeyDown={handleNotesKeyDown}
             rows={3}
             placeholder="Add context or next steps"
           />

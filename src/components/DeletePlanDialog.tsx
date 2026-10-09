@@ -11,6 +11,7 @@ export function DeletePlanDialog({
   onCancel,
   onConfirm,
 }: DeletePlanDialogProps) {
+  const cancelButtonRef = useRef<HTMLButtonElement>(null)
   const confirmButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -18,14 +19,26 @@ export function DeletePlanDialog({
   }, [])
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>): void {
-    if (event.key === 'Escape') {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      event.stopPropagation()
+      cancelButtonRef.current?.focus()
+    } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      event.stopPropagation()
+      confirmButtonRef.current?.focus()
+    } else if (event.key === 'Escape') {
       event.preventDefault()
       event.stopPropagation()
       onCancel()
     } else if (event.key === 'Enter') {
       event.preventDefault()
       event.stopPropagation()
-      onConfirm()
+      if (event.target === cancelButtonRef.current) {
+        onCancel()
+      } else {
+        onConfirm()
+      }
     }
   }
 
@@ -47,7 +60,7 @@ export function DeletePlanDialog({
           Any plans that point to it will keep their other parents, but this plan will be removed.
         </p>
         <div className="dialog-actions">
-          <button type="button" className="secondary-button" onClick={onCancel}>
+          <button ref={cancelButtonRef} type="button" className="secondary-button" onClick={onCancel}>
             Keep plan
           </button>
           <button ref={confirmButtonRef} type="button" className="danger-button" onClick={onConfirm}>
