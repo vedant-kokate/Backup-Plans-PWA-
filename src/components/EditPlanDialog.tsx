@@ -1,18 +1,30 @@
 import { useEffect, useRef, useState } from 'react'
+import { SearchPalette } from './SearchPalette'
+import { wouldCreateCycle } from '../graph'
 import { usePlanStore } from '../store'
 import type { Plan } from '../types'
 
 interface EditPlanDialogProps {
   plan: Plan
   onClose: () => void
+  onDelete: () => void
 }
 
-export function EditPlanDialog({ plan, onClose }: EditPlanDialogProps) {
+export function EditPlanDialog({ plan, onClose, onDelete }: EditPlanDialogProps) {
   const updatePlan = usePlanStore((state) => state.updatePlan)
+  const plans = usePlanStore((state) => state.plans)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState(plan.title)
   const [notes, setNotes] = useState(plan.notes)
+  const [parents, setParents] = useState<string[]>(plan.parents)
   const [error, setError] = useState('')
+  const [isParentSearchOpen, setIsParentSearchOpen] = useState(false)
+  const selectedParents = parents
+    .map((parentId) => plans[parentId])
+    .filter((parent): parent is Plan => parent !== undefined)
+  const availablePlans = Object.values(plans)
+    .filter((candidate) => !wouldCreateCycle(plans, plan.id, candidate.id))
+    .sort((first, second) => Number(first.id) - Number(second.id))
 
   useEffect(() => {
     titleInputRef.current?.focus()
@@ -29,7 +41,11 @@ export function EditPlanDialog({ plan, onClose }: EditPlanDialogProps) {
       return
     }
 
-    updatePlan(plan.id, { title: trimmedTitle, notes: notes.trim() })
+    updatePlan(plan.id, {
+      title: trimmedTitle,
+      notes: notes.trim(),
+      parents,
+    })
     onClose()
   }
 
@@ -38,6 +54,17 @@ export function EditPlanDialog({ plan, onClose }: EditPlanDialogProps) {
       event.preventDefault()
       event.currentTarget.form?.requestSubmit()
     }
+  }
+
+  function handleParentSelect(parent: Plan): void {
+    setParents((currentParents) => [...currentParents, parent.id])
+    setIsParentSearchOpen(false)
+  }
+
+  function removeParent(parentId: string): void {
+    setParents((currentParents) =>
+      currentParents.filter((currentParentId) => currentParentId !== parentId),
+    )
   }
 
   return (
@@ -78,12 +105,46 @@ export function EditPlanDialog({ plan, onClose }: EditPlanDialogProps) {
             rows={5}
           />
 
+          <div className="parent-picker">
+            <div className="parent-picker-heading">
+              <span className="field-label">Parents</span>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => setIsParentSearchOpen(true)}
+              >
+                Add parent
+              </button>
+            </div>
+            {selectedParents.length === 0 ? (
+              <p className="parent-empty">No parents selected. This will be a root plan.</p>
+            ) : (
+              <ul className="parent-chips" aria-label="Selected parents">
+                {selectedParents.map((parent) => (
+                  <li key={parent.id} className="parent-chip">
+                    <span>#{parent.id} {parent.title}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeParent(parent.id)}
+                      aria-label={`Remove parent #${parent.id}`}
+                    >
+                      x
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           {error && (
             <p id="edit-plan-title-error" className="field-error" role="alert">
               {error}
             </p>
           )}
           <div className="dialog-actions">
+            <button type="button" className="danger-button dialog-delete-button" onClick={onDelete}>
+              Delete plan
+            </button>
             <button type="button" className="secondary-button" onClick={onClose}>
               Cancel
             </button>
@@ -92,6 +153,15 @@ export function EditPlanDialog({ plan, onClose }: EditPlanDialogProps) {
             </button>
           </div>
         </form>
+
+        {isParentSearchOpen && (
+          <SearchPalette
+            plans={availablePlans}
+            exclude={[plan.id, ...parents]}
+            onClose={() => setIsParentSearchOpen(false)}
+            onSelect={handleParentSelect}
+          />
+        )}
       </div>
     </div>
   )

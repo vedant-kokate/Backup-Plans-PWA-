@@ -11,6 +11,7 @@ import {
   type Node,
 } from '@xyflow/react'
 import { getChildren, getParents, type Plans } from '../graph'
+import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
 import { useHotkeys } from '../hooks/useHotkeys'
 import type { Plan } from '../types'
 import '@xyflow/react/dist/style.css'
@@ -20,12 +21,17 @@ interface FocusGraphProps {
   focusedId: string | null
   onFocus: (id: string) => void
   highlightedId?: string | null
+  showShortcuts: boolean
+  onOpenShortcuts: () => void
+  onCloseShortcuts: () => void
+  onNavigationMode: () => void
 }
 
 interface FocusGraphCanvasProps {
   plans: Plans
   focusedId: string
   onFocus: (id: string) => void
+  onNavigationMode: () => void
   highlightedId: string | null
 }
 
@@ -184,6 +190,7 @@ function FocusGraphCanvas({
   plans,
   focusedId,
   onFocus,
+  onNavigationMode,
   highlightedId,
 }: FocusGraphCanvasProps) {
   const { fitView, getZoom, zoomIn, zoomOut } = useReactFlow()
@@ -272,7 +279,10 @@ function FocusGraphCanvas({
       nodesConnectable={false}
       elementsSelectable
       onMove={(_, viewport) => setZoom(viewport.zoom)}
-      onNodeClick={(_, node) => onFocus(node.id)}
+      onNodeClick={(_, node) => {
+        onNavigationMode()
+        onFocus(node.id)
+      }}
     >
       <Background gap={24} size={1} />
     </ReactFlow>
@@ -284,13 +294,18 @@ export function FocusGraph({
   focusedId,
   onFocus,
   highlightedId = null,
+  showShortcuts,
+  onOpenShortcuts,
+  onCloseShortcuts,
+  onNavigationMode,
 }: FocusGraphProps) {
   const graphRef = useRef<HTMLDivElement>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
     function handleFullscreenChange(): void {
-      setIsFullscreen(document.fullscreenElement === graphRef.current)
+      const fullscreenTarget = graphRef.current?.closest('.planner')
+      setIsFullscreen(document.fullscreenElement === fullscreenTarget)
     }
 
     document.addEventListener('fullscreenchange', handleFullscreenChange)
@@ -299,39 +314,67 @@ export function FocusGraph({
 
   async function toggleFullscreen(): Promise<void> {
     try {
+      const fullscreenTarget = graphRef.current?.closest<HTMLElement>('.planner')
+
       if (document.fullscreenElement) {
         await document.exitFullscreen()
       } else {
-        await graphRef.current?.requestFullscreen()
+        await fullscreenTarget?.requestFullscreen()
       }
     } catch {
       setIsFullscreen(false)
     }
   }
 
+  useHotkeys({
+    f: () => {
+      void toggleFullscreen()
+    },
+  })
+
   if (!focusedId || !plans[focusedId]) {
     return <p className="graph-empty">Select a plan to see its connections.</p>
   }
 
   return (
-    <div ref={graphRef} className="focus-graph" aria-label="Focused plan graph">
-      <button
-        type="button"
-        className="graph-fullscreen-button"
-        onClick={() => void toggleFullscreen()}
-        aria-label={isFullscreen ? 'Exit full screen' : 'Make graph full screen'}
-        aria-pressed={isFullscreen}
-      >
-        {isFullscreen ? 'Exit full screen' : 'Full screen'}
-      </button>
+    <div
+      ref={graphRef}
+      className="focus-graph"
+      aria-label="Focused plan graph"
+      tabIndex={0}
+      onFocus={onNavigationMode}
+    >
+      <div className="graph-controls">
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onOpenShortcuts}
+          aria-label="Show keyboard shortcuts"
+          title="Keyboard shortcuts (?)"
+        >
+          ?
+        </button>
+        <button
+          type="button"
+          className="icon-button"
+          onClick={() => void toggleFullscreen()}
+          aria-label={isFullscreen ? 'Exit full screen' : 'Make graph full screen'}
+          aria-pressed={isFullscreen}
+          title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+        >
+          {isFullscreen ? 'x' : '⛶'}
+        </button>
+      </div>
       <ReactFlowProvider>
         <FocusGraphCanvas
           plans={plans}
           focusedId={focusedId}
           onFocus={onFocus}
+          onNavigationMode={onNavigationMode}
           highlightedId={highlightedId}
         />
       </ReactFlowProvider>
+      {showShortcuts && <KeyboardShortcutsDialog onClose={onCloseShortcuts} />}
     </div>
   )
 }

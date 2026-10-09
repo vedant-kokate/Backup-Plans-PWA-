@@ -23,6 +23,32 @@
   gap: 8px;
 }
 
+.icon-button {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+  border-color: var(--accent);
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .eyebrow {
   margin-bottom: 12px;
   color: var(--accent);
@@ -68,29 +94,35 @@ h1 {
   border-radius: 0;
 }
 
-.graph-fullscreen-button {
+.planner:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  overflow: hidden;
+  padding: 0;
+}
+
+.planner:fullscreen .planner-header,
+.planner:fullscreen .plan-section,
+.planner:fullscreen .graph-section > .section-heading {
+  display: none;
+}
+
+.planner:fullscreen .graph-section,
+.planner:fullscreen .focus-graph {
+  height: 100vh;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.graph-controls {
   position: absolute;
   z-index: 5;
   top: 12px;
   right: 12px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-h);
-  background: var(--surface);
-  font: inherit;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.graph-fullscreen-button:hover,
-.graph-fullscreen-button:focus-visible {
-  border-color: var(--accent);
-}
-
-.graph-fullscreen-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  display: flex;
+  gap: 8px;
 }
 
 .focus-graph .react-flow__node {
@@ -176,9 +208,16 @@ h1 {
   list-style: none;
 }
 
+.plan-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
 .plan {
   display: flex;
-  width: 100%;
+  min-width: 0;
+  flex: 1;
   align-items: baseline;
   gap: 16px;
   padding: 16px 18px;
@@ -227,6 +266,11 @@ h1 {
   font-size: 0.82rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.plan-edit-button {
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .empty-state {
@@ -358,6 +402,73 @@ h1 {
 .palette-empty {
   padding: 20px 12px;
   color: var(--text);
+}
+
+.shortcuts-backdrop {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 6, 13, 0.45);
+}
+
+.shortcuts-dialog {
+  width: min(520px, 100%);
+  max-height: min(680px, 90vh);
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.shortcuts-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.shortcuts-header h2 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 1.65rem;
+  line-height: 1.1;
+}
+
+.shortcuts-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shortcuts-list li {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.8fr) 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.shortcuts-list kbd {
+  width: fit-content;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  color: var(--text-h);
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 0.75rem;
 }
 
 .dialog {
@@ -527,6 +638,10 @@ h1 {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 24px;
+}
+
+.dialog-delete-button {
+  margin-right: auto;
 }
 
 .secondary-button {

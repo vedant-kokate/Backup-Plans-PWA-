@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { DeletePlanDialog } from './components/DeletePlanDialog'
 import { EditPlanDialog } from './components/EditPlanDialog'
 import { FocusGraph } from './components/FocusGraph'
+import { KeyboardShortcutsDialog } from './components/KeyboardShortcutsDialog'
 import { NewPlanDialog } from './components/NewPlanDialog'
 import { SearchPalette } from './components/SearchPalette'
 import { getChildren, getParents } from './graph'
@@ -16,6 +17,9 @@ function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
+  const [navigationMode, setNavigationMode] = useState<'graph' | 'list'>('graph')
+  const [listIndex, setListIndex] = useState(0)
   const [candidateId, setCandidateId] = useState<string | null>(null)
   const [candidateSide, setCandidateSide] = useState<NavigationSide | null>(null)
   const plans = usePlanStore((state) => state.plans)
@@ -28,7 +32,8 @@ function App() {
   const parentPlans = focusedId ? getParents(plans, focusedId) : []
   const childPlans = focusedId ? getChildren(plans, focusedId) : []
   const focusedPlan = focusedId ? plans[focusedId] : undefined
-  const isOverlayOpen = isDialogOpen || isSearchOpen || isEditOpen || isDeleteOpen
+  const isOverlayOpen =
+    isDialogOpen || isSearchOpen || isEditOpen || isDeleteOpen || isShortcutsOpen
 
   function focusPlan(id: string): void {
     setFocus(id)
@@ -40,6 +45,7 @@ function App() {
     setIsSearchOpen(false)
     setIsEditOpen(false)
     setIsDeleteOpen(false)
+    setIsShortcutsOpen(false)
     setIsDialogOpen(true)
   }
 
@@ -47,7 +53,24 @@ function App() {
     setIsDialogOpen(false)
     setIsEditOpen(false)
     setIsDeleteOpen(false)
+    setIsShortcutsOpen(false)
     setIsSearchOpen(true)
+  }
+
+  function enterListMode(): void {
+    setNavigationMode('list')
+    const focusedIndex = focusedId
+      ? planList.findIndex((plan) => plan.id === focusedId)
+      : -1
+    setListIndex(focusedIndex >= 0 ? focusedIndex : 0)
+  }
+
+  function openShortcuts(): void {
+    setIsDialogOpen(false)
+    setIsSearchOpen(false)
+    setIsEditOpen(false)
+    setIsDeleteOpen(false)
+    setIsShortcutsOpen(true)
   }
 
   function openEditPlan(): void {
@@ -60,6 +83,31 @@ function App() {
     if (focusedPlan) {
       setIsDeleteOpen(true)
     }
+  }
+
+  function openEditForPlan(id: string): void {
+    focusPlan(id)
+    setIsEditOpen(true)
+  }
+
+  function moveListSelection(step: number): void {
+    if (planList.length === 0) {
+      return
+    }
+
+    const nextIndex = Math.min(
+      planList.length - 1,
+      Math.max(0, listIndex + step),
+    )
+    const nextPlan = planList[nextIndex]
+
+    setListIndex(nextIndex)
+    focusPlan(nextPlan.id)
+  }
+
+  function requestDeleteFromEdit(): void {
+    setIsEditOpen(false)
+    setIsDeleteOpen(true)
   }
 
   function confirmDeletePlan(): void {
@@ -138,14 +186,20 @@ function App() {
 
   function confirmCandidate(): void {
     if (candidateId) {
-      focusPlan(candidateId)
+      openEditForPlan(candidateId)
+    } else if (focusedPlan) {
+      openEditPlan()
     }
   }
 
   useHotkeys({
     n: openNewPlan,
     '/': openSearch,
-    'mod+k': openSearch,
+    '?': () => {
+      if (!isOverlayOpen) {
+        openShortcuts()
+      }
+    },
     e: () => {
       if (!isOverlayOpen) {
         openEditPlan()
@@ -173,17 +227,33 @@ function App() {
     },
     ArrowUp: () => {
       if (!isOverlayOpen) {
-        moveCandidate(-1)
+        if (navigationMode === 'list') {
+          moveListSelection(-1)
+        } else {
+          moveCandidate(-1)
+        }
       }
     },
     ArrowDown: () => {
       if (!isOverlayOpen) {
-        moveCandidate(1)
+        if (navigationMode === 'list') {
+          moveListSelection(1)
+        } else {
+          moveCandidate(1)
+        }
       }
     },
     Enter: () => {
       if (!isOverlayOpen) {
-        confirmCandidate()
+        if (navigationMode === 'list') {
+          const selectedPlan = planList[listIndex]
+
+          if (selectedPlan) {
+            openEditForPlan(selectedPlan.id)
+          }
+        } else {
+          confirmCandidate()
+        }
       }
     },
     Escape: () => {
@@ -191,6 +261,7 @@ function App() {
       setIsSearchOpen(false)
       setIsEditOpen(false)
       setIsDeleteOpen(false)
+      setIsShortcutsOpen(false)
     },
   })
 
@@ -203,6 +274,15 @@ function App() {
             <h1>Your plans</h1>
           </div>
           <div className="header-actions">
+            <button
+              type="button"
+              className="icon-button"
+              onClick={openShortcuts}
+              aria-label="Show keyboard shortcuts"
+              title="Keyboard shortcuts (?)"
+            >
+              ?
+            </button>
             <button type="button" className="secondary-button header-button" onClick={openSearch}>
               Search
             </button>
@@ -223,6 +303,10 @@ function App() {
           focusedId={focusedId}
           highlightedId={candidateId}
           onFocus={focusPlan}
+          showShortcuts={isShortcutsOpen}
+          onOpenShortcuts={openShortcuts}
+          onCloseShortcuts={() => setIsShortcutsOpen(false)}
+          onNavigationMode={() => setNavigationMode('graph')}
         />
       </section>
 
@@ -235,20 +319,35 @@ function App() {
         {planList.length === 0 ? (
           <p className="empty-state">No plans yet. Press n to create one.</p>
         ) : (
-          <ul className="plan-list">
+          <ul
+            className="plan-list"
+            tabIndex={0}
+            onFocus={enterListMode}
+            aria-label="All plans"
+          >
             {planList.map((plan) => (
               <li key={plan.id}>
-                <button
-                  type="button"
-                  className={plan.id === focusedId ? 'plan focused' : 'plan'}
-                  onClick={() => focusPlan(plan.id)}
-                >
-                  <span className="plan-id">#{plan.id}</span>
-                  <span className="plan-content">
-                    <span>{plan.title}</span>
-                    {plan.notes && <span className="plan-notes">{plan.notes}</span>}
-                  </span>
-                </button>
+                <div className="plan-row">
+                  <button
+                    type="button"
+                    className={
+                      plan.id === focusedId && plan.id === planList[listIndex]?.id
+                        ? 'plan focused list-selected'
+                        : plan.id === focusedId
+                          ? 'plan focused'
+                          : plan.id === planList[listIndex]?.id
+                            ? 'plan list-selected'
+                            : 'plan'
+                    }
+                    onClick={() => openEditForPlan(plan.id)}
+                  >
+                    <span className="plan-id">#{plan.id}</span>
+                    <span className="plan-content">
+                      <span>{plan.title}</span>
+                      {plan.notes && <span className="plan-notes">{plan.notes}</span>}
+                    </span>
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -257,7 +356,11 @@ function App() {
 
       {isDialogOpen && <NewPlanDialog onClose={() => setIsDialogOpen(false)} />}
       {isEditOpen && focusedPlan && (
-        <EditPlanDialog plan={focusedPlan} onClose={() => setIsEditOpen(false)} />
+        <EditPlanDialog
+          plan={focusedPlan}
+          onClose={() => setIsEditOpen(false)}
+          onDelete={requestDeleteFromEdit}
+        />
       )}
       {isDeleteOpen && focusedPlan && (
         <DeletePlanDialog
@@ -265,6 +368,9 @@ function App() {
           onCancel={() => setIsDeleteOpen(false)}
           onConfirm={confirmDeletePlan}
         />
+      )}
+      {isShortcutsOpen && !focusedId && (
+        <KeyboardShortcutsDialog onClose={() => setIsShortcutsOpen(false)} />
       )}
       {isSearchOpen && (
         <SearchPalette
