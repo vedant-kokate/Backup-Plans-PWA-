@@ -197,9 +197,7 @@ function App() {
 
   function confirmCandidate(): void {
     if (candidateId) {
-      openEditForPlan(candidateId)
-    } else if (focusedPlan) {
-      openEditPlan()
+      focusPlan(candidateId)
     }
   }
 
@@ -265,7 +263,7 @@ function App() {
           const selectedPlan = planList[listIndex]
 
           if (selectedPlan) {
-            openEditForPlan(selectedPlan.id)
+            focusPlan(selectedPlan.id)
           }
         } else {
           confirmCandidate()

@@ -243,7 +243,7 @@ function getNodePosition(
   const y =
     visiblePlan.column === 0 && visiblePlan.distance === 0
       ? 0
-      : (index - (columnCount - 1) / 2) * rowGap
+      : (index - (columnCount - 1) / 2) * rowGap + visiblePlan.column * 55
 
   return { x, y }
 }

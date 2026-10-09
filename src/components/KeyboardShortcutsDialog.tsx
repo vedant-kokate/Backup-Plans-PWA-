@@ -10,7 +10,7 @@ const shortcuts = [
   ['d / Delete', 'Delete focused plan'],
   ['Left / Right', 'Move to a parent or child'],
   ['Up / Down', 'Choose a navigation candidate'],
-  ['Enter', 'Open the selected plan or confirm a candidate'],
+  ['Enter', 'Confirm the current navigation selection'],
   ['Esc', 'Close the current dialog'],
   ['+ / - / 0', 'Zoom in, zoom out, or fit graph'],
   ['f', 'Toggle graph fullscreen'],
