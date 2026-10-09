@@ -10,6 +10,13 @@
   margin-bottom: 52px;
 }
 
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
 .eyebrow {
   margin-bottom: 12px;
   color: var(--accent);
@@ -113,6 +120,106 @@ h1 {
   color: var(--text);
 }
 
+.primary-button,
+.secondary-button {
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.primary-button {
+  padding: 10px 16px;
+  border: 1px solid var(--accent);
+  color: #fffdf8;
+  background: var(--accent);
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+  filter: brightness(1.08);
+}
+
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.dialog input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 6, 13, 0.45);
+}
+
+.dialog {
+  width: min(420px, 100%);
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.dialog-header {
+  margin-bottom: 24px;
+}
+
+.dialog h2 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 1.65rem;
+  line-height: 1.1;
+}
+
+.dialog label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-h);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.dialog input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--bg);
+  font: inherit;
+}
+
+.field-error {
+  margin-top: 8px;
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.secondary-button {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  background: transparent;
+}
+
+.secondary-button:hover {
+  border-color: var(--text);
+}
+
 @media (max-width: 600px) {
   .planner {
     padding: 44px 20px;
@@ -120,5 +227,14 @@ h1 {
 
   .planner-header {
     margin-bottom: 40px;
+  }
+
+  .header-row {
+    align-items: flex-start;
+  }
+
+  .header-button {
+    padding: 8px 12px;
+    font-size: 0.8rem;
   }
 }
